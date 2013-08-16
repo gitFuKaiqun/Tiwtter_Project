@@ -25,26 +25,39 @@ def AccCount():
 		count += buffer.count('\n')
 	return count + 1
 
+def outputConsole(ApiResult):
+	for tmp in ApiResult:
+		print tmp
+
+# def outputFile(ApiResult):
+# 	WriterFile = open('', 'a')
+
 def TwitterCrawling():
+	"""
+	This function enables crawling Tweets with a list of Twitter application accounts and a keywords list.
+
+	"""
+	global AccountToken
+	global KeywordToken
 	while True:
 		try:
 			TwitterApiInstance = NextAccount(AccountToken)
-
 			while True:
 				temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], geocode=(38.907231,-77.036483,'20mi'))
 				KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
-				# time.sleep(0.5)
-				for tmp in temp:
-					# writingFile.write(str(tmp) + '\n')
-					print tmp
+				time.sleep(0.1)
+				outputConsole(temp)
 
 		except Exception, e:
-			Errotype = e.message[0]['code']
-			if Errotype is 88:
-				AccountToken = (AccountToken + 1) % AccCount()
-				print 'Switch Account!'
+			if e.__class__.__name__ is 'TwitterError':
+				Errotype = e.message[0]['code']
+				if Errotype is 88:
+					AccountToken = (AccountToken + 1) % AccCount()
+					print 'Switch Account!'
+				else:
+					print e
 			else:
-				print e
+				print "SERIOUS ERROR! ======> " + e
 
 if  __name__ == '__main__':
 	TwitterCrawling()
