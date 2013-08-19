@@ -1,6 +1,7 @@
 import twitter
 import time
 import DB_Connection
+import ast
 
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
 KeyWordsList = open('Keywords', 'r').read().split('\t')
@@ -28,7 +29,8 @@ def AccCount():
 
 def outputConsole(ApiResult):
 	for tmp in ApiResult:
-		print tmp
+		if tmp.geo is not None:
+			print tmp.geo
 
 def outputFile(ApiResult):
 	WriterFile = open('', 'a')
@@ -70,7 +72,7 @@ def TwitterCrawling():
 				else:
 					print e
 			else:
-				print "SERIOUS ERROR! ======> " + e
+				print "SERIOUS ERROR! ======> " + e.message
 
 if  __name__ == '__main__':
 	TwitterCrawling()
