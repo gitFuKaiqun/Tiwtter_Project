@@ -13,8 +13,8 @@ def MS_SqlServer_Method():
 	conn = pymssql.connect(
 		host=Connection_Config[0].split('\t')[0],
 		user=Connection_Config[0].split('\t')[1],
-	    password=Connection_Config[0].split('\t')[2],
-	    database=Connection_Config[0].split('\t')[3]
+		password=Connection_Config[0].split('\t')[2],
+		database=Connection_Config[0].split('\t')[3]
 	)
 	cur = conn.cursor()
 
@@ -31,8 +31,8 @@ def MY_SQL_Method():
 
 	"""
 	conn = MySQLdb.connect(
-	    host=Connection_Config[1].split('\t')[0],
-        user=Connection_Config[1].split('\t')[1],
-        passwd=Connection_Config[1].split('\t')[2],
-        db=Connection_Config[1].split('\t')[3]
-    )
+		host=Connection_Config[1].split('\t')[0],
+		user=Connection_Config[1].split('\t')[1],
+		passwd=Connection_Config[1].split('\t')[2],
+		db=Connection_Config[1].split('\t')[3]
+	)
