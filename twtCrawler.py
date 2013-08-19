@@ -1,5 +1,6 @@
 import twitter
 import time
+import DB_Connection
 
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
 KeyWordsList = open('Keywords', 'r').read().split('\t')
@@ -29,8 +30,20 @@ def outputConsole(ApiResult):
 	for tmp in ApiResult:
 		print tmp
 
-# def outputFile(ApiResult):
-# 	WriterFile = open('', 'a')
+def outputFile(ApiResult):
+	WriterFile = open('', 'a')
+
+def outputDataBase(MethodIndex):
+	"""
+
+	:param MethodIndex: set to '0' connect to Microsoft SQL Server; set to '1' connect to MySQL Server
+	"""
+	if MethodIndex is 0:
+		DB_Connection.MS_SqlServer_Method()
+	elif MethodIndex is 1:
+		DB_Connection.MY_SQL_Method()
+	else:
+		print 'DB connection doesn\'t exist'
 
 def TwitterCrawling():
 	"""
