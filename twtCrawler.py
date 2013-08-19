@@ -1,7 +1,6 @@
 import twitter
 import time
 import DB_Connection
-import ast
 
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
 KeyWordsList = open('Keywords', 'r').read().split('\t')
@@ -30,20 +29,20 @@ def AccCount():
 def outputConsole(ApiResult):
 	for tmp in ApiResult:
 		if tmp.geo is not None:
-			print tmp.geo
+			print tmp.user.name + '  Says:===>  ' + tmp.text.strip().replace('\n', ' ').replace('\r', ' ')
 
 def outputFile(ApiResult):
 	WriterFile = open('', 'a')
 
-def outputDataBase(MethodIndex):
+def outputDataBase(MethodIndex, ApiResult):
 	"""
 
 	:param MethodIndex: set to '0' connect to Microsoft SQL Server; set to '1' connect to MySQL Server
 	"""
 	if MethodIndex is 0:
-		DB_Connection.MS_SqlServer_Method()
+		DB_Connection.MS_SqlServer_Method(ApiResult)
 	elif MethodIndex is 1:
-		DB_Connection.MY_SQL_Method()
+		DB_Connection.MY_SQL_Method(ApiResult)
 	else:
 		print 'DB connection doesn\'t exist'
 

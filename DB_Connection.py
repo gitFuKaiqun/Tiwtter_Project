@@ -5,7 +5,7 @@ import pymssql
 
 Connection_Config = [line.strip() for line in open('Connections', 'r')]
 
-def MS_SqlServer_Method():
+def MS_SqlServer_Method(ApiResult):
 	"""
 
 
@@ -25,7 +25,7 @@ def MS_SqlServer_Method():
 		print "ID=%d" % (row[0])
 		row = cur.fetchone()
 
-def MY_SQL_Method():
+def MY_SQL_Method(ApiResult):
 	"""
 
 
