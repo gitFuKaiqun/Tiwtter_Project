@@ -29,7 +29,7 @@ def AccCount():
 def outputConsole(ApiResult):
 	for tmp in ApiResult:
 		if tmp.geo is not None:
-			print tmp.user.name + '  Says:===>  ' + tmp.text.strip().replace('\n', ' ').replace('\r', ' ')
+			print tmp.user.name + '  Says: ===>  ' + tmp.text.strip().replace('\n', ' ').replace('\r', ' ')
 
 def outputFile(ApiResult):
 	WriterFile = open('', 'a')
