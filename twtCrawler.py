@@ -1,12 +1,14 @@
 import twitter
 import time
 import DB_Connection
+import json
 
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
 KeyWordsList = open('Keywords', 'r').read().split('\t')
 
 AccountToken = 0
 KeywordToken = 0
+OverAllCount = 0
 
 def NextAccount(AccNum):
 	api = twitter.Api(
@@ -28,11 +30,25 @@ def AccCount():
 
 def outputConsole(ApiResult):
 	for tmp in ApiResult:
-		if tmp.geo is not None:
-			print tmp.user.name + '  Says: ===>  ' + tmp.text.strip().replace('\n', ' ').replace('\r', ' ')
+		# if tmp.user.screen_name is 'WTOPtraffic':
+		print tmp
+		# # TempJson = json.load(tmp)
+		# # print TempJson['text']
+		# if tmp.geo is not None:
+		# 	print tmp.user.name + '  Says: ===>  ' + tmp.text.strip().replace('\n', ' ').replace('\r', ' ')
 
-def outputFile(ApiResult):
-	WriterFile = open('', 'a')
+def outputFile(ApiResult, outputPath):
+	WriterFile = open(outputPath, 'a')
+	for one in ApiResult:
+		WriterFile.write(str(one) + '\n')
+
+def ExtractRecentTweets(api, User_id, since_twtId):
+	while True:
+		TempRslt = api.GetUserTimeline(user_id=User_id, count=200, max_id=since_twtId)
+		if not TempRslt:
+			return -1
+		outputFile(TempRslt, 'ResentTwt/drgridlock_Recent_Tweets')
+		since_twtId = TempRslt[len(TempRslt) - 1].id - 1
 
 def outputDataBase(MethodIndex, ApiResult):
 	"""
@@ -53,25 +69,32 @@ def TwitterCrawling():
 	"""
 	global AccountToken
 	global KeywordToken
+	global OverAllCount
 	while True:
 		try:
 			TwitterApiInstance = NextAccount(AccountToken)
+			OverAllCount = 0
 			while True:
-				temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], geocode=(38.907231,-77.036483,'20mi'))
+				# temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], geocode=(38.907231,-77.036483,'20mi'))
+				# temp = TwitterApiInstance.GetUserTimeline(user_id=217510835, count=1200, max_id=369602873770143746)
+				ExtractRecentTweets(TwitterApiInstance, 18025557, None)
+				return 0
 				KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
 				time.sleep(0.1)
-				outputConsole(temp)
+				# outputConsole(temp)
+				OverAllCount += 1
 
 		except Exception, e:
+			global OverAllCount
 			if e.__class__.__name__ is 'TwitterError':
 				Errotype = e.message[0]['code']
 				if Errotype is 88:
 					AccountToken = (AccountToken + 1) % AccCount()
-					print 'Switch Account!'
+					print 'Switch Account! Next Account:' + '  Total queries sent:' + str(OverAllCount) + str(AccountToken)
 				else:
 					print e
 			else:
 				print "SERIOUS ERROR! ======> " + e.message
 
 if  __name__ == '__main__':
-	TwitterCrawling()
+	print TwitterCrawling()
