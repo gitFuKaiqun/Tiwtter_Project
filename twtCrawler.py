@@ -5,13 +5,31 @@ import json
 
 
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
-KeyWordsList = open('Keywords', 'r').read().split('\t')
+KeyWordsList = open('TargetKey', 'r').read().split('\t')
 
 MappingMatrix = [[point for point in line.split('\t')] for line in open('destination.txt', 'r')]
 
-AccountToken = 0
-KeywordToken = 0
 OverAllCount = 0
+
+class StatusRecorder:
+	def __init__(self):
+		self.AccountToken = 0
+		self.KeywordToken = 0
+		self.Mapping = [0, 0]
+
+	def NextAcc(self):
+		self.AccountToken = (self.AccountToken + 1) % AccCount()
+	def NextKey(self):
+		self.KeywordToken = (self.KeywordToken + 1) % len(KeyWordsList)
+	def NextCell(self):
+		tmpY = self.Mapping[1] + 1
+		self.Mapping[1] = tmpY % len(MappingMatrix)
+		if tmpY is len(MappingMatrix):
+			tmpX = self.Mapping[0] + 1
+			self.Mapping[0] = tmpX % len(MappingMatrix[0])
+			pass
+
+ApiMonitor = StatusRecorder()
 
 def NextAccount(AccNum):
 	api = twitter.Api(
@@ -31,10 +49,10 @@ def AccCount():
 		count += buffer.count('\n')
 	return count + 1
 
-def outputConsole(ApiResult):
+def outputConsole(ApiResult, kword):
 	for tmp in ApiResult:
 		# if tmp.user.screen_name is 'WTOPtraffic':
-		print tmp
+		print tmp.text.strip().replace('\n', ' ').replace('\r', ' ') + ' -----> ' + kword
 		# # TempJson = json.load(tmp)
 		# # print TempJson['text']
 		# if tmp.geo is not None:
@@ -70,35 +88,43 @@ def TwitterCrawling():
 	This function enables crawling Tweets with a list of Twitter application accounts and a keywords list.
 
 	"""
-	global AccountToken
-	global KeywordToken
+	# global AccountToken
+	# global KeywordToken
 	global OverAllCount
+	global ApiMonitor
 	while True:
 		try:
-			TwitterApiInstance = NextAccount(AccountToken)
+			TwitterApiInstance = NextAccount(ApiMonitor.AccountToken)
 			OverAllCount = 0
-			for y in xrange(len(MappingMatrix)):
-				for x in xrange(len(MappingMatrix[y])):
-					Xcordi = MappingMatrix[y][x].strip().split(',')[0]
-					Ycordi = MappingMatrix[y][x].strip().split(',')[1]
-					while True:
-						temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], count=100, geocode=(Xcordi,Ycordi,'20mi'))
-						# temp = TwitterApiInstance.GetUserTimeline(user_id=217510835, count=1200, max_id=369602873770143746)
-						# ExtractRecentTweets(TwitterApiInstance, 18025557, None)
-						# return 0
-						KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
-						time.sleep(0.1)
-						# outputConsole(temp)
-						DB_Connection.MongoDB_Insertion(temp, [y,x])
-						OverAllCount += 1
+			while True:
+				Xcordi = MappingMatrix[ApiMonitor.Mapping[1]][ApiMonitor.Mapping[0]].strip().split(',')[0]
+				Ycordi = MappingMatrix[ApiMonitor.Mapping[1]][ApiMonitor.Mapping[0]].strip().split(',')[1]
+				while True:
+					temp = TwitterApiInstance.GetSearch(term=KeyWordsList[ApiMonitor.KeywordToken], count=100, geocode=(Xcordi,Ycordi,'20mi'))
+					word = KeyWordsList[ApiMonitor.KeywordToken]
+					# temp = TwitterApiInstance.GetUserTimeline(user_id=217510835, count=1200, max_id=369602873770143746)
+					# ExtractRecentTweets(TwitterApiInstance, 18025557, None)
+					# return 0
+					# KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
+					ApiMonitor.NextKey()
+					time.sleep(0.1)
+					# outputConsole(temp)
+					# DB_Connection.MongoDB_Insertion(temp, [ApiMonitor.Mapping[0],ApiMonitor.Mapping[1]])
+					# outputFile(temp, 'TestingRslt.txt')
+					outputConsole(temp, word)
+					OverAllCount += 1
+					pass
+				ApiMonitor.NextCell()
+				pass
 
 		except Exception, e:
 			global OverAllCount
 			if e.__class__.__name__ is 'TwitterError':
 				Errotype = e.message[0]['code']
 				if Errotype is 88:
-					AccountToken = (AccountToken + 1) % AccCount()
-					print 'Switch Account! Next Account:' + str(AccountToken) + '  Total queries sent:' + str(OverAllCount)
+					ApiMonitor.NextAcc()
+					# AccountToken = (AccountToken + 1) % AccCount()
+					print 'Switch Account! Next Account:' + str(ApiMonitor.AccountToken) + '  Total queries sent:' + str(OverAllCount)
 				else:
 					print e
 			else:
