@@ -3,8 +3,11 @@ import time
 import DB_Connection
 import json
 
+
 TwitterAccountPool = [line.strip() for line in open('TwitterAccountList', 'r')]
 KeyWordsList = open('Keywords', 'r').read().split('\t')
+
+MappingMatrix = [[point for point in line.split('\t')] for line in open('destination.txt', 'r')]
 
 AccountToken = 0
 KeywordToken = 0
@@ -74,15 +77,20 @@ def TwitterCrawling():
 		try:
 			TwitterApiInstance = NextAccount(AccountToken)
 			OverAllCount = 0
-			while True:
-				# temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], geocode=(38.907231,-77.036483,'20mi'))
-				# temp = TwitterApiInstance.GetUserTimeline(user_id=217510835, count=1200, max_id=369602873770143746)
-				ExtractRecentTweets(TwitterApiInstance, 18025557, None)
-				return 0
-				KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
-				time.sleep(0.1)
-				# outputConsole(temp)
-				OverAllCount += 1
+			for y in xrange(len(MappingMatrix)):
+				for x in xrange(len(MappingMatrix[y])):
+					Xcordi = MappingMatrix[y][x].strip().split(',')[0]
+					Ycordi = MappingMatrix[y][x].strip().split(',')[1]
+					while True:
+						temp = TwitterApiInstance.GetSearch(term=KeyWordsList[KeywordToken], count=100, geocode=(Xcordi,Ycordi,'20mi'))
+						# temp = TwitterApiInstance.GetUserTimeline(user_id=217510835, count=1200, max_id=369602873770143746)
+						# ExtractRecentTweets(TwitterApiInstance, 18025557, None)
+						# return 0
+						KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
+						time.sleep(0.1)
+						# outputConsole(temp)
+						DB_Connection.MongoDB_Insertion(temp, [y,x])
+						OverAllCount += 1
 
 		except Exception, e:
 			global OverAllCount
@@ -90,7 +98,7 @@ def TwitterCrawling():
 				Errotype = e.message[0]['code']
 				if Errotype is 88:
 					AccountToken = (AccountToken + 1) % AccCount()
-					print 'Switch Account! Next Account:' + '  Total queries sent:' + str(OverAllCount) + str(AccountToken)
+					print 'Switch Account! Next Account:' + str(AccountToken) + '  Total queries sent:' + str(OverAllCount)
 				else:
 					print e
 			else:
