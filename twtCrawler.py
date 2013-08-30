@@ -88,8 +88,6 @@ def TwitterCrawling():
 	This function enables crawling Tweets with a list of Twitter application accounts and a keywords list.
 
 	"""
-	# global AccountToken
-	# global KeywordToken
 	global OverAllCount
 	global ApiMonitor
 	while True:
@@ -99,6 +97,8 @@ def TwitterCrawling():
 			while True:
 				Xcordi = MappingMatrix[ApiMonitor.Mapping[1]][ApiMonitor.Mapping[0]].strip().split(',')[0]
 				Ycordi = MappingMatrix[ApiMonitor.Mapping[1]][ApiMonitor.Mapping[0]].strip().split(',')[1]
+			# Xcordi = 38.907265
+			# Ycordi = -77.03649
 				while True:
 					temp = TwitterApiInstance.GetSearch(term=KeyWordsList[ApiMonitor.KeywordToken], count=100, geocode=(Xcordi,Ycordi,'20mi'))
 					word = KeyWordsList[ApiMonitor.KeywordToken]
@@ -107,7 +107,7 @@ def TwitterCrawling():
 					# return 0
 					# KeywordToken = (KeywordToken + 1) % len(KeyWordsList)
 					ApiMonitor.NextKey()
-					time.sleep(0.1)
+					# time.sleep(0.1)
 					# outputConsole(temp)
 					# DB_Connection.MongoDB_Insertion(temp, [ApiMonitor.Mapping[0],ApiMonitor.Mapping[1]])
 					# outputFile(temp, 'TestingRslt.txt')
